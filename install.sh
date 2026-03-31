@@ -1,35 +1,42 @@
 #!/bin/bash
 # --- CONFIGURACIÓN ---
-# Aquí debes poner la URL de un archivo de texto en tu GitHub o servidor 
-# que contenga las llaves permitidas.
-URL_KEYS="https://raw.githubusercontent.com/TU_USUARIO/redapn/main/keys.txt"
-URL_PANEL="https://raw.githubusercontent.com/TU_USUARIO/redapn/main/redapn.sh"
+IP_MAESTRA="166.1.88.72" # <--- ASEGÚRATE DE QUE SEA LA 166...
+URL_PANEL="https://raw.githubusercontent.com/6274-W/panel-licencias/main/redapn.sh"
+
+# --- COLORES ---
+G='\e[1;32m'; R='\e[1;31m'; Y='\e[1;33m'; NC='\e[0m'; C='\e[1;36m'
 
 clear
-echo -e "\e[1;36m       RED APN PRO - INSTALADOR ELITE\e[0m"
-echo -ne "\e[1;33mINGRESE SU LLAVE DE ACCESO: \e[0m"
+echo -e "${C}┌──────────────────────────────────────────┐${NC}"
+echo -e "${C}│${NC}        ${Y}🚀 RED APN PRO - ACTIVACIÓN 🚀${NC}      ${C}│${NC}"
+echo -e "${C}└──────────────────────────────────────────┘${NC}"
+echo ""
+echo -ne "${Y}🔑 INGRESE SU KEY DE ACCESO: ${NC}"
 read user_key
 
-# Verificación de la Key
-if curl -s "$URL_KEYS" | grep -qW "$user_key"; then
-    echo -e "\e[1;32m✔ Key Validada Correctamente.\e[0m"
+# Validación mediante POST a tu VPS
+# Usamos --data para enviar la key correctamente
+status=$(curl -s --data "key=$user_key" "http://$IP_MAESTRA/licencias/validar.php")
+
+if [ "$status" == "OK" ]; then
+    echo -e "\n${G}✅ LICENCIA AUTORIZADA.${NC}"
+    echo -e "${C}📥 Descargando componentes...${NC}"
     
-    # --- PROCESO DE INSTALACIÓN ---
-    apt update && apt install -y curl at
+    apt update && apt install -y curl wget at > /dev/null 2>&1
     mkdir -p /etc/redapn
-    curl -o /usr/local/bin/panel "$URL_PANEL"
+    
+    wget -qO /usr/local/bin/panel "$URL_PANEL"
     chmod +x /usr/local/bin/panel
     
-    # Crear alias para que el cliente solo escriba 'panel'
-    echo "alias panel='/usr/local/bin/panel'" >> ~/.bashrc
+    # Crear el comando 'panel'
+    if ! grep -q "alias panel" ~/.bashrc; then
+        echo "alias panel='/usr/local/bin/panel'" >> ~/.bashrc
+    fi
     
-    # --- LÓGICA DE UN SOLO USO ---
-    # Aquí es donde ocurre la magia: Debes usar un script en tu servidor
-    # o una API para borrar la key de la lista después de usarse.
-    # Por ahora, simulamos la instalación exitosa.
-    
-    echo -e "\e[1;32m✔ Instalación Completa. Escriba 'panel' para iniciar.\e[0m"
+    echo -e "\n${G}⭐ ¡INSTALACIÓN EXITOSA!${NC}"
+    echo -e "${W}Escriba ${Y}panel${W} para iniciar el sistema.${NC}"
 else
-    echo -e "\e[1;31m✘ Key Inválida o Ya Utilizada.\e[0m"
+    echo -e "\n${R}❌ KEY INVÁLIDA O YA UTILIZADA.${NC}"
+    echo -e "${Y}Verifica que la Key sea correcta o solicita una nueva.${NC}"
     exit 1
 fi
