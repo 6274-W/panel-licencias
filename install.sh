@@ -9,7 +9,7 @@ echo "======================================"
 read -p "🔑 Ingresa tu licencia: " LIC
 
 # --- VALIDAR CONTRA TU VPS ---
-RESP=$(curl -s "https://166.1.90.181/validar.php?licencia=$LIC")
+RESP=$(curl -s "http://166.1.90.181/validar.php?licencia=$LIC")
 
 if  "$RESP" != *"OK"* ; then
     echo "❌ Licencia inválida"
