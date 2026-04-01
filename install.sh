@@ -1,7 +1,8 @@
 #!/bin/bash
 # --- CONFIGURACIÓN ---
 IP_MAESTRA="166.1.88.72" 
-URL_PANEL="https://raw.githubusercontent.com/6274-W/panel-licencias/main/redapn.sh"
+# URL del archivo de texto con el código Base64
+URL_TXT="https://raw.githubusercontent.com/6274-W/panel-licencias/main/redapn.txt"
 AUTH_FILE="/etc/redapn/auth_token"
 
 # --- COLORES ---
@@ -15,7 +16,6 @@ echo -e "${C}└─────────────────────�
 # 1. Verificar si ya está validado localmente
 if [ -f "$AUTH_FILE" ]; then
     echo -e "\n${G}✅ LICENCIA ACTIVA DETECTADA.${NC}"
-    # Si ya existe el panel, lo ejecutamos, si no lo descargamos de nuevo
     if [ -f /usr/local/bin/panel ]; then
         panel
         exit 0
@@ -36,18 +36,26 @@ status=$(curl -s --data "key=$user_key&hwid=$HWID" "http://$IP_MAESTRA/licencias
 if [ "$status" == "OK" ]; then
     echo -e "${G}✅ ACCESO CONCEDIDO.${NC}"
     
-    # Crear carpeta y guardar el "Token de Sesión" (Persistencia)
+    # Crear carpeta y asegurar dependencias
     mkdir -p /etc/redapn
-    echo "$user_key" > "$AUTH_FILE"
-    chmod 444 "$AUTH_FILE"
-
-    # Instalación de componentes
-    apt update && apt install -y curl wget > /dev/null 2>&1
+    apt update && apt install -y curl wget coreutils > /dev/null 2>&1
     
-    echo -e "${C}📥 Descargando Panel Principal...${NC}"
-    wget -qO /usr/local/bin/panel "$URL_PANEL"
+    echo -e "${C}📥 Descargando y Decodificando Panel PRO...${NC}"
+    
+    # PASO CLAVE: Descarga el texto y lo convierte en el binario real
+    wget -qO /etc/redapn/redapn.txt "$URL_TXT"
+    base64 -d /etc/redapn/redapn.txt > /usr/local/bin/panel
+    
+    # Asignar permisos de ejecución al binario
     chmod +x /usr/local/bin/panel
     
+    # Guardar Token de Sesión (Persistencia)
+    echo "$user_key" > "$AUTH_FILE"
+    chmod 444 "$AUTH_FILE"
+    
+    # Limpieza del archivo temporal
+    rm -f /etc/redapn/redapn.txt
+
     # Crear alias para que funcione el comando 'panel'
     if ! grep -q "alias panel" ~/.bashrc; then
         echo "alias panel='/usr/local/bin/panel'" >> ~/.bashrc
@@ -55,6 +63,9 @@ if [ "$status" == "OK" ]; then
     
     echo -e "\n${G}⭐ ¡INSTALACIÓN EXITOSA!${NC}"
     echo -e "${W}Escriba ${Y}panel${W} para iniciar.${NC}"
+    
+    # Forzar actualización de alias en la sesión actual
+    export PATH=$PATH:/usr/local/bin
     source ~/.bashrc
 else
     echo -e "\n${R}❌ ERROR: $status${NC}"
