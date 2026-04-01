@@ -6,6 +6,7 @@ URL_TXT="https://raw.githubusercontent.com/6274-W/panel-licencias/main/redapn.tx
 AUTH_FILE="/etc/redapn/auth_token"
 
 # --- COLORES ---
+G='\e[1;32m'; R='\e[1;31m'; Y='\e[1;33m'; NC='\e[0m'; C='\e[1;36m'; W='\e[1;37m'
 
 clear
 echo -e "${C}┌──────────────────────────────────────────┐${NC}"
