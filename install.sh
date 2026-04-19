@@ -12,7 +12,7 @@ read KEY
 
 HWID=$(cat /etc/machine-id | cut -c1-10)
 
-SVR="TU-IP-DEL-VPS"  # ← CAMBIALO
+SVR="prueba.red-pro.site"  # ← CAMBIALO
 
 CHECK=$(curl -s "http://$SVR/licencias/validar.php?key=$KEY&hwid=$HWID")
 
