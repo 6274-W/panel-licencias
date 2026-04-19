@@ -18,20 +18,18 @@ CHECK=$(curl -s "http://$SVR/licencias/validar.php?key=$KEY&hwid=$HWID")
 if [[ "$CHECK" == "OK" ]]; then
     echo -e "\e[1;32m[+] Licencia Válida.\e[0m"
     
-    # DESCARGA Y DECODIFICACIÓN SEGURA
-    # Usamos -d para decodificar y mandamos el error a /dev/null
-    curl -sL "https://raw.githubusercontent.com/6274-W/panel-licencias/main/core_engine" | base64 -d > /usr/local/bin/panel 2>/dev/null
+    # DESCARGA DIRECTA DEL BINARIO (Sin Base64)
+    wget -q --no-cache -O /usr/local/bin/panel "http://$SVR/core_engine"
     
     chmod +x /usr/local/bin/panel
     
-    # Forzar el alias
-    alias panel='/usr/local/bin/panel'
+    # Crear el alias
     if ! grep -q "alias panel" ~/.bashrc; then
         echo "alias panel='/usr/local/bin/panel'" >> ~/.bashrc
     fi
     
     echo -e "\e[1;32m[+] INSTALACIÓN COMPLETADA.\e[0m"
-    echo -e "\e[1;37mEscriba \e[1;33m/usr/local/bin/panel\e[1;37m para probar ahora.\e[0m"
+    echo -e "\e[1;37mCierre y abra su terminal o escriba: \e[1;33mpanel\e[0m"
 else
     echo -e "\e[1;31m[!] Error: $CHECK\e[0m"
     exit 1
